@@ -614,6 +614,12 @@ a:hover {
     border-color: white;
 }
 
+.btn-card-copy:hover {
+    background-color: rgba(66, 133, 244, 0.08);
+    color: var(--google-blue);
+    border-color: rgba(66, 133, 244, 0.4);
+}
+
 /* Card Content / Body */
 .card-body {
     font-size: 14px;

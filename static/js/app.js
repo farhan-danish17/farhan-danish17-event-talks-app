@@ -7,6 +7,7 @@ let searchQuery = '';
 // DOM Elements
 const btnRefresh = document.getElementById('btn-refresh');
 const iconRefresh = btnRefresh.querySelector('.icon-refresh');
+const btnExport = document.getElementById('btn-export');
 const lastUpdatedTimeEl = document.getElementById('last-updated-time');
 const searchInput = document.getElementById('search-input');
 const filterBadgesContainer = document.getElementById('filter-badges');
@@ -44,6 +45,11 @@ function setupEventListeners() {
     // Refresh & Retry
     btnRefresh.addEventListener('click', fetchReleaseNotes);
     btnRetry.addEventListener('click', fetchReleaseNotes);
+    
+    // Export CSV
+    if (btnExport) {
+        btnExport.addEventListener('click', exportToCSV);
+    }
     
     // Search
     searchInput.addEventListener('input', (e) => {
@@ -212,6 +218,12 @@ function renderTimeline() {
                             <span class="badge-type ${typeClass}">${update.type}</span>
                         </div>
                         <div class="card-header-actions">
+                            <button class="btn-card-action btn-card-copy" aria-label="Copy update text" title="Copy update text">
+                                <svg class="icon-copy-default" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                            </button>
                             <button class="btn-card-action btn-card-tweet" aria-label="Tweet this update" title="Tweet this update">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -252,6 +264,7 @@ function renderTimeline() {
 function setupCardEvents(card, updateId, entry, update) {
     const checkbox = card.querySelector(`#check-${updateId}`);
     const btnTweet = card.querySelector('.btn-card-tweet');
+    const btnCopy = card.querySelector('.btn-card-copy');
     
     // Checkbox selection toggle
     checkbox.addEventListener('change', (e) => {
@@ -275,6 +288,30 @@ function setupCardEvents(card, updateId, entry, update) {
     btnTweet.addEventListener('click', (e) => {
         e.stopPropagation();
         openTweetComposer(entry, update);
+    });
+    
+    // Copy to clipboard click listener
+    btnCopy.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+            await navigator.clipboard.writeText(update.text);
+            
+            // Visual feedback: change icon to green checkmark temporarily
+            const originalHTML = btnCopy.innerHTML;
+            btnCopy.innerHTML = `
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#10b981" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            `;
+            btnCopy.style.borderColor = '#10b981';
+            
+            setTimeout(() => {
+                btnCopy.innerHTML = originalHTML;
+                btnCopy.style.borderColor = '';
+            }, 1500);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+        }
     });
 }
 
@@ -439,4 +476,92 @@ function sendTweet() {
     const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(intentUrl, '_blank', 'width=550,height=420,referrerpolicy=no-referrer');
     closeModal();
+}
+
+// ==========================================================================
+// Export CSV Handler
+// ==========================================================================
+function exportToCSV() {
+    let dataToExport = [];
+    
+    // If selected updates exist, use them. Otherwise use currently visible filtered updates
+    if (selectedUpdates.size > 0) {
+        selectedUpdates.forEach((val) => {
+            dataToExport.push({
+                date: val.date,
+                type: val.type,
+                text: val.text,
+                link: val.link
+            });
+        });
+    } else {
+        // Collect visible updates based on current search & type filters
+        allEntries.forEach((entry) => {
+            const filtered = entry.updates.filter(update => {
+                if (activeFilter !== 'all' && update.type !== activeFilter) return false;
+                if (searchQuery) {
+                    const typeMatches = update.type.toLowerCase().includes(searchQuery);
+                    const textMatches = update.text.toLowerCase().includes(searchQuery);
+                    return typeMatches || textMatches;
+                }
+                return true;
+            });
+            
+            filtered.forEach((update) => {
+                dataToExport.push({
+                    date: entry.date,
+                    type: update.type,
+                    text: update.text,
+                    link: entry.link
+                });
+            });
+        });
+    }
+    
+    if (dataToExport.length === 0) {
+        alert("No release notes to export!");
+        return;
+    }
+    
+    // Convert to CSV string (Headers: Date, Type, Description, Release Link)
+    const headers = ["Date", "Type", "Description", "Release Link"];
+    
+    const escapeCSV = (str) => {
+        if (str === null || str === undefined) return '';
+        const cleanStr = String(str).replace(/"/g, '""');
+        if (cleanStr.includes(',') || cleanStr.includes('\n') || cleanStr.includes('\r') || cleanStr.includes('"')) {
+            return `"${cleanStr}"`;
+        }
+        return cleanStr;
+    };
+    
+    const csvRows = [];
+    csvRows.push(headers.map(escapeCSV).join(','));
+    
+    dataToExport.forEach(row => {
+        const values = [
+            row.date,
+            row.type,
+            row.text,
+            row.link
+        ];
+        csvRows.push(values.map(escapeCSV).join(','));
+    });
+    
+    const csvString = csvRows.join('\n');
+    
+    // Trigger file download
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const selectionSuffix = selectedUpdates.size > 0 ? `-selected-${selectedUpdates.size}` : '';
+    link.setAttribute('download', `bigquery-release-notes-${today}${selectionSuffix}.csv`);
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 }
