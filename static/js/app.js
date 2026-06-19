@@ -8,6 +8,7 @@ let searchQuery = '';
 const btnRefresh = document.getElementById('btn-refresh');
 const iconRefresh = btnRefresh.querySelector('.icon-refresh');
 const btnExport = document.getElementById('btn-export');
+const btnThemeToggle = document.getElementById('btn-theme-toggle');
 const lastUpdatedTimeEl = document.getElementById('last-updated-time');
 const searchInput = document.getElementById('search-input');
 const filterBadgesContainer = document.getElementById('filter-badges');
@@ -36,6 +37,7 @@ const btnModalSend = document.getElementById('btn-modal-send');
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     fetchReleaseNotes();
     setupEventListeners();
 });
@@ -49,6 +51,16 @@ function setupEventListeners() {
     // Export CSV
     if (btnExport) {
         btnExport.addEventListener('click', exportToCSV);
+    }
+    
+    // Theme Toggle
+    if (btnThemeToggle) {
+        btnThemeToggle.addEventListener('click', () => {
+            const isLight = document.body.classList.contains('light-theme');
+            const newTheme = isLight ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        });
     }
     
     // Search
@@ -564,4 +576,27 @@ function exportToCSV() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+// ==========================================================================
+// Theme (Light/Dark) Handler
+// ==========================================================================
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+}
+
+function applyTheme(theme) {
+    const sunIcon = btnThemeToggle.querySelector('.icon-sun');
+    const moonIcon = btnThemeToggle.querySelector('.icon-moon');
+    
+    if (theme === 'light') {
+        document.body.classList.add('light-theme');
+        if (sunIcon) sunIcon.classList.add('hidden');
+        if (moonIcon) moonIcon.classList.remove('hidden');
+    } else {
+        document.body.classList.remove('light-theme');
+        if (sunIcon) sunIcon.classList.remove('hidden');
+        if (moonIcon) moonIcon.classList.add('hidden');
+    }
 }

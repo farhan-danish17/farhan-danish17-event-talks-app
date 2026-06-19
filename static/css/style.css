@@ -49,6 +49,49 @@
     --shadow-glow: 0 0 20px rgba(66, 133, 244, 0.2);
 }
 
+/* Light Theme Overrides */
+body.light-theme {
+    --bg-app: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-hover: #f1f5f9;
+    --bg-glass: rgba(255, 255, 255, 0.85);
+    
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-color-hover: rgba(15, 23, 42, 0.15);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.04);
+    --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+    --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+    --shadow-glow: 0 0 20px rgba(66, 133, 244, 0.1);
+    
+    --color-feature: #047857;
+    --color-feature-bg: rgba(4, 120, 87, 0.08);
+    --color-announcement: #1d4ed8;
+    --color-announcement-bg: rgba(29, 78, 216, 0.08);
+    --color-issue: #be123c;
+    --color-issue-bg: rgba(190, 18, 60, 0.08);
+    --color-deprecation: #a16207;
+    --color-deprecation-bg: rgba(161, 98, 7, 0.08);
+}
+
+body.light-theme .card-body code {
+    background-color: rgba(15, 23, 42, 0.05);
+    color: #e11d48;
+}
+
+body.light-theme .tweet-composer-card {
+    background-color: #f8fafc;
+}
+
+body.light-theme .modal-footer {
+    background-color: rgba(15, 23, 42, 0.02);
+}
+
+
 /* ==========================================================================
    Base Styles
    ========================================================================== */
@@ -229,6 +272,39 @@ a:hover {
     padding: 8px 14px;
     font-size: 12px;
 }
+
+.btn-theme-toggle {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 44px;
+    height: 44px;
+    border-radius: var(--border-radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.btn-theme-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: var(--border-color-hover);
+}
+
+body.light-theme .btn-theme-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+.btn-theme-toggle svg {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-theme-toggle:hover svg {
+    transform: rotate(30deg) scale(1.1);
+}
+
 
 /* Spinner & Icon Animations */
 .icon-refresh.spinning {
