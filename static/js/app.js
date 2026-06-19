@@ -9,6 +9,7 @@ const btnRefresh = document.getElementById('btn-refresh');
 const iconRefresh = btnRefresh.querySelector('.icon-refresh');
 const btnExport = document.getElementById('btn-export');
 const btnThemeToggle = document.getElementById('btn-theme-toggle');
+const checkSelectAll = document.getElementById('check-select-all');
 const lastUpdatedTimeEl = document.getElementById('last-updated-time');
 const searchInput = document.getElementById('search-input');
 const filterBadgesContainer = document.getElementById('filter-badges');
@@ -60,6 +61,13 @@ function setupEventListeners() {
             const newTheme = isLight ? 'dark' : 'light';
             localStorage.setItem('theme', newTheme);
             applyTheme(newTheme);
+        });
+    }
+    
+    // Select All
+    if (checkSelectAll) {
+        checkSelectAll.addEventListener('change', (e) => {
+            toggleSelectAllVisible(e.target.checked);
         });
     }
     
@@ -230,18 +238,18 @@ function renderTimeline() {
                             <span class="badge-type ${typeClass}">${update.type}</span>
                         </div>
                         <div class="card-header-actions">
-                            <button class="btn-card-action btn-card-copy" aria-label="Copy update text" title="Copy update text">
+                            <button class="btn-card-action btn-card-copy" aria-label="Copy update text" data-tooltip="Copy description" title="Copy update text">
                                 <svg class="icon-copy-default" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                                 </svg>
                             </button>
-                            <button class="btn-card-action btn-card-tweet" aria-label="Tweet this update" title="Tweet this update">
+                            <button class="btn-card-action btn-card-tweet" aria-label="Tweet this update" data-tooltip="Tweet update" title="Tweet this update">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                                 </svg>
                             </button>
-                            <a class="btn-card-action btn-card-link" href="${entry.link}" target="_blank" rel="noopener noreferrer" aria-label="View source release notes" title="View source release notes">
+                            <a class="btn-card-action btn-card-link" href="${entry.link}" target="_blank" rel="noopener noreferrer" aria-label="View source release notes" data-tooltip="View source notes" title="View source release notes">
                                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5">
                                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
                                 </svg>
@@ -270,6 +278,8 @@ function renderTimeline() {
     } else {
         showState('content');
     }
+    
+    updateSelectAllState();
 }
 
 // Event hooks inside each update card
@@ -346,6 +356,7 @@ function toggleSelection(updateId, isSelected, entry, update, cardElement) {
     }
     
     updateSelectionDrawer();
+    updateSelectAllState();
 }
 
 function updateSelectionDrawer() {
@@ -368,7 +379,9 @@ function clearSelection() {
     });
     
     selectedUpdates.clear();
+    if (checkSelectAll) checkSelectAll.checked = false;
     updateSelectionDrawer();
+    updateSelectAllState();
 }
 
 // ==========================================================================
@@ -599,4 +612,72 @@ function applyTheme(theme) {
         if (sunIcon) sunIcon.classList.remove('hidden');
         if (moonIcon) moonIcon.classList.add('hidden');
     }
+}
+
+// ==========================================================================
+// Select All Helper Handlers
+// ==========================================================================
+function toggleSelectAllVisible(isChecked) {
+    const visibleCards = getVisibleCardData();
+    
+    visibleCards.forEach(item => {
+        const checkbox = document.getElementById(`check-${item.id}`);
+        const card = document.getElementById(`card-${item.id}`);
+        
+        if (checkbox) checkbox.checked = isChecked;
+        
+        if (isChecked) {
+            selectedUpdates.set(item.id, item.data);
+            if (card) card.classList.add('selected');
+        } else {
+            selectedUpdates.delete(item.id);
+            if (card) card.classList.remove('selected');
+        }
+    });
+    
+    updateSelectionDrawer();
+}
+
+function getVisibleCardData() {
+    const visible = [];
+    allEntries.forEach((entry, entryIndex) => {
+        entry.updates.forEach((update, updateIndex) => {
+            const updateId = `up-${entryIndex}-${updateIndex}`;
+            
+            // Check filters
+            if (activeFilter !== 'all' && update.type !== activeFilter) return;
+            if (searchQuery) {
+                const typeMatches = update.type.toLowerCase().includes(searchQuery);
+                const textMatches = update.text.toLowerCase().includes(searchQuery);
+                if (!typeMatches && !textMatches) return;
+            }
+            
+            visible.push({
+                id: updateId,
+                data: {
+                    id: updateId,
+                    date: entry.date,
+                    type: update.type,
+                    text: update.text,
+                    link: entry.link
+                }
+            });
+        });
+    });
+    return visible;
+}
+
+function updateSelectAllState() {
+    if (!checkSelectAll) return;
+    
+    const visibleCards = getVisibleCardData();
+    if (visibleCards.length === 0) {
+        checkSelectAll.checked = false;
+        checkSelectAll.disabled = true;
+        return;
+    }
+    
+    checkSelectAll.disabled = false;
+    const allSelected = visibleCards.every(item => selectedUpdates.has(item.id));
+    checkSelectAll.checked = allSelected;
 }

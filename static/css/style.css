@@ -108,6 +108,7 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 a {
@@ -153,6 +154,7 @@ a:hover {
     margin-top: 24px;
     box-shadow: var(--shadow-sm);
     z-index: 10;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .header-logo {
@@ -328,6 +330,7 @@ body.light-theme .btn-theme-toggle:hover {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius-lg);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .search-container {
@@ -363,6 +366,15 @@ body.light-theme .btn-theme-toggle:hover {
 }
 
 .filter-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.filter-left {
     display: flex;
     align-items: center;
     gap: 16px;
@@ -604,7 +616,8 @@ body.light-theme .btn-theme-toggle:hover {
     color: transparent;
 }
 
-.card-selection input[type="checkbox"]:checked ~ .checkbox-custom {
+.card-selection input[type="checkbox"]:checked ~ .checkbox-custom,
+.select-all-label input[type="checkbox"]:checked ~ .checkbox-custom {
     background-color: var(--google-blue);
     border-color: var(--google-blue);
     color: white;
@@ -982,3 +995,72 @@ body.light-theme .btn-theme-toggle:hover {
         border-width: 3px;
     }
 }
+
+/* Tooltips styling */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background-color: rgba(9, 13, 22, 0.95);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-color);
+    z-index: 1000;
+}
+
+body.light-theme [data-tooltip]::before {
+    background-color: #0f172a;
+    color: #ffffff;
+}
+
+[data-tooltip]:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Select All checkbox custom alignment */
+.select-all-container {
+    display: flex;
+    align-items: center;
+}
+
+.select-all-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+.select-all-label:hover {
+    color: var(--text-primary);
+}
+
+.select-all-label input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.select-all-checkbox {
+    position: relative !important;
+    flex-shrink: 0;
+}
+

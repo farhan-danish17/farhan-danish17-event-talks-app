@@ -71,13 +71,27 @@
             </div>
             
             <div class="filter-container">
-                <span class="filter-label">Filter by type:</span>
-                <div class="filter-badges" id="filter-badges">
-                    <button class="filter-badge active" data-type="all">All Updates</button>
-                    <button class="filter-badge" data-type="Feature">Features</button>
-                    <button class="filter-badge" data-type="Announcement">Announcements</button>
-                    <button class="filter-badge" data-type="Issue">Issues</button>
-                    <button class="filter-badge" data-type="Deprecation">Deprecations</button>
+                <div class="filter-left">
+                    <span class="filter-label">Filter by type:</span>
+                    <div class="filter-badges" id="filter-badges">
+                        <button class="filter-badge active" data-type="all">All Updates</button>
+                        <button class="filter-badge" data-type="Feature">Features</button>
+                        <button class="filter-badge" data-type="Announcement">Announcements</button>
+                        <button class="filter-badge" data-type="Issue">Issues</button>
+                        <button class="filter-badge" data-type="Deprecation">Deprecations</button>
+                    </div>
+                </div>
+                
+                <div class="select-all-container">
+                    <label class="select-all-label">
+                        <input type="checkbox" id="check-select-all" aria-label="Select all visible updates">
+                        <span class="checkbox-custom select-all-checkbox">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </span>
+                        <span class="select-all-text">Select All Visible</span>
+                    </label>
                 </div>
             </div>
         </section>
